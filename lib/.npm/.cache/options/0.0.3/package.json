@@ -1,0 +1,50 @@
+{
+  "author": {
+    "name": "Einar Otto Stangvik",
+    "email": "einaros@gmail.com",
+    "url": "http://2x.io"
+  },
+  "name": "options",
+  "description": "A very light-weight in-code option parsers for node.js.",
+  "version": "0.0.3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/einaros/options.js.git"
+  },
+  "main": "lib/options",
+  "scripts": {
+    "test": "make test"
+  },
+  "engines": {
+    "node": ">=0.4.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "latest",
+    "expect.js": "latest"
+  },
+  "_npmUser": {
+    "name": "einaros",
+    "email": "einaros@gmail.com"
+  },
+  "_id": "options@0.0.3",
+  "optionalDependencies": {},
+  "_engineSupported": true,
+  "_npmVersion": "0.2.19",
+  "_nodeVersion": "v0.4.11",
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "5a5714822c82a45795d15da1c9b935d6dba2b73a",
+    "tarball": "http://registry.npmjs.org/options/-/options-0.0.3.tgz"
+  },
+  "maintainers": [
+    {
+      "name": "einaros",
+      "email": "einaros@gmail.com"
+    }
+  ],
+  "directories": {},
+  "files": [
+    ""
+  ]
+}

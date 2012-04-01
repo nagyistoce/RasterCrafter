@@ -1,0 +1,37 @@
+{
+  "name": "xmlhttprequest",
+  "description": "XMLHttpRequest for Node",
+  "version": "1.2.2",
+  "author": {
+    "name": "Dan DeFelippi"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://creativecommons.org/licenses/MIT/"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/driverdan/node-XMLHttpRequest.git"
+  },
+  "engine": [
+    "node >=0.4.0"
+  ],
+  "main": "./XMLHttpRequest",
+  "_id": "xmlhttprequest@1.2.2",
+  "engines": {
+    "node": "*"
+  },
+  "_engineSupported": true,
+  "_npmVersion": "0.2.19",
+  "_nodeVersion": "v0.4.11",
+  "directories": {},
+  "files": [
+    ""
+  ],
+  "_defaultsLoaded": true,
+  "dist": {
+    "shasum": "6e28d5d03f09bc4e08bd2f274b7e4b37bcb2c2a0"
+  }
+}
