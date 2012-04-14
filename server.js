@@ -1,38 +1,18 @@
-var http = require("http"),
-url = require("url"),
-path = require("path"),
-fs = require("fs"),
-sys = require("sys"),
-io = require("./lib/socket.io");;
+var app = require('express').createServer()
+  , io = require('socket.io').listen(app);
 
-server = http.createServer(function(request, response){
-	var uri = url.parse(request.url).pathname;
-	var filename = path.join(process.cwd(), uri);
-	console.log("Looking for "+filename);
-	path.exists(filename, function(exists){
-		if(!exists){
-			response.writeHeader(404,{"Content-Type":"text/plain"});
-			response.end("Can't find it...");
-		}
-		fs.readFile(filename, 'binary', function(err, file){
-			if(err){
-				response.writeHeader(500, {"Content-Type":"text/plain"});
-				response.end(err);
-				return;
-			}
-			response.writeHeader(200);
-			response.write(file, 'binary');
-			response.end();
-		});
-		
-		
-	});
-}).listen(8080);
+app.listen(process.env.C9_PORT);
 
-listener = io.listen(server);
+app.get('/', function (req, res) {
+  res.sendfile(__dirname + '/index.html');
+});
 
-process.openStdin().addListener("data", function(text){
-	listener.broadcast(text);
+io.sockets.on('connection', function (socket) {
+  socket.emit('news', { hello: 'world' });
+  socket.on('my other event', function (data) {
+    console.log(data);
+  });
+  console.log("User Connected");
 });
 
 console.log("Server Started");
