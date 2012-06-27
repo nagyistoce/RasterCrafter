@@ -9,8 +9,6 @@
 	<meta name="viewport" content="width=device-width">
 </head>
 <body>
-	<!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-	
 	<header>
 		<h1>Raster Crafter</h1>
 	</header>
@@ -25,14 +23,9 @@
 		Copyright &copy; 2012, Jesse Hattabaugh
 	</footer>
     
+    <script src="http://code.jquery.com/jquery-1.7.2.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-      var socket = io.connect();
-      socket.on('news', function (data) {
-        console.log(data);
-        socket.emit('my other event', { my: 'data' });
-      });
-    </script>
+    <script src="/client.js"></script>
 	
 </body>
 </html>

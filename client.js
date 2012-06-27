@@ -118,7 +118,7 @@ function World(controller){
 		this.context.drawImage(this.background,x,y,size,size,0,0,size,size);
 	};
 	
-	this.drawPlayer = function(){
+	this.drawPlayers = function(){
 		// draws the player at the center of the canvas
 		this.context.fillStyle = "red";
 		this.context.fillRect(500/2-5,500/2-5,10,10);
@@ -135,23 +135,45 @@ function World(controller){
 	this.world.drawBackground(this.player.coords());
 	this.world.drawPlayer();
 	
-	var socket = new io.Socket(null, {rememberTransport: false, port: 8080});
-	socket.connect();
-	socket.addEvent('message', function(data){
-		$('aside').append('<p>'+$.map(data, function(e,i){
-			return String.fromCharCode(e);
-		})+'</p>');
-	});
+    // initialize socket
+	this.socket = io.connect();
+    
+    this.socket.on('welcome', function (data) {
+        console.log("You are connected");
+        console.dir(data);
+        
+        // display login form
+    });
+    
+    this.socket.on('disconnect', function(){
+        console.log("You are disconnected");
+    });
+    
+    this.socket.on('player joined', function(data){
+      console.log("New player joined");
+      console.dir(data);
+    });
+    
+    this.socket.on('player left', function(data){
+      console.log("Player left");
+      console.dir(data);
+    });
+    
+    this.socket.on('player moved', function(data){
+        console.log("Player moved");
+        console.dir(data);
+    });
 	
 	this.move = function(direction){
 		// todo: the player needs a concept of which direction it's facing
 		if(['north', 'south', 'east', 'west'].indexOf(direction) !== -1){
 			
 			var newCoords = this.player.updateCoords(direction);
-			// if player is crossing a chunk threshold
-			// this.world.updateBackground();
+            
+            this.socket.emit('move', newCoords);
+            
 			this.world.drawBackground(newCoords);
-			this.world.drawPlayer();
+			this.world.drawPlayers();
 		} else {
 			throw 'invalid direction';
 		}
