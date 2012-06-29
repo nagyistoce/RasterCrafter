@@ -1,9 +1,13 @@
 {
 	"name": "RasterCrafter",
 	"version": "0.0.1",
+	"description": "Pixel drawing game",
+	"author": "Jesse Hattabaugh <arkanciscan@gmail.com>",
 	"dependencies": {
 		"express": "2.5.x",
-        "socket.io": "0.9.x"
+        "socket.io": "0.9.x",
+        "redis": "0.7.x",
+        "url": "0.7.x"
 	},
 	"engines": {
 		"node": "0.6.x"
