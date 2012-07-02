@@ -33,6 +33,22 @@ function Player(controller){
 	};
 }
 
+function Chat(controller){
+	this.controller = controller;
+	
+	this.pane = $('#chat');
+	
+	$('#say').on('click', this, function(e){
+		msg = $('#msg');
+		e.data.controller.say(msg.val());
+		msg.val('');
+	});
+	
+	this.recieve = function(msg){
+		this.pane.append($('<dt>Somebody</dt><dd>'+msg+'</dd>'));
+	};
+}
+
 function World(controller){
 	// the main view of the world
 	this.controller = controller;
@@ -118,7 +134,7 @@ function World(controller){
 		this.context.drawImage(this.background,x,y,size,size,0,0,size,size);
 	};
 	
-	this.drawPlayers = function(){
+	this.drawPlayer = function(){
 		// draws the player at the center of the canvas
 		this.context.fillStyle = "red";
 		this.context.fillRect(500/2-5,500/2-5,10,10);
@@ -126,9 +142,12 @@ function World(controller){
 	
 }
 
+// Main Application Controller
+
 (function(){
 	this.world = new World(this);
 	this.player = new Player(this);
+	this.chat = new Chat(this);
 	
 	// initialize world
 	this.world.updateBackground();
@@ -163,6 +182,11 @@ function World(controller){
         console.log("Player moved");
         console.dir(data);
     });
+    
+    this.say = function(msg){
+		// send the msg over the socket
+		// if 
+	};
 	
 	this.move = function(direction){
 		// todo: the player needs a concept of which direction it's facing
@@ -173,7 +197,7 @@ function World(controller){
             this.socket.emit('move', newCoords);
             
 			this.world.drawBackground(newCoords);
-			this.world.drawPlayers();
+			this.world.drawPlayer();
 		} else {
 			throw 'invalid direction';
 		}
