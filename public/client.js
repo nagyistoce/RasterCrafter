@@ -27,17 +27,18 @@
 		socket.emit('here is my password', {password:password});
     });
     
-    this.socket.on('welcome', function (coords) {
+    this.socket.on('welcome', function (start) {
         console.log("login successfull");
-        self.x = coords.x;
-        self.y = coords.y;
+        self.x = start[0];
+        self.y = start[1];
         // todo: show stuff
     });
     
-    this.socket.on('you moved', function(data){
+    this.socket.on('you moved', function(to){
 			console.log("you moved");
-			self.x = data.x;
-			self.y = data.y;
+			console.dir(to);
+			self.x = to[0];
+			self.y = to[1];
     });
     
     this.socket.on('invalid move', function(data){
@@ -97,6 +98,6 @@
 	
 	this.move = function(x,y){
 		console.log('moving to ('+x+','+y+')');
-		this.socket.emit('move', {x:x,y:y});
+		this.socket.emit('move', [x,y]);
 	};
 }());
