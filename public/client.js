@@ -45,7 +45,7 @@
     
     this.move = function(x,y){
 		if (!this.moving){
-			this.moving == true;
+			this.moving = true;
 			console.log('moving to ('+x+','+y+')');
 			this.socket.emit('move', [x,y]);
 		}
@@ -56,14 +56,17 @@
 		// todo: prevent repetitive presses
 		// todo: handle diagonals
 		// todo: don't capture EVERYTHING it's annoying
+		var from_x = parseInt(e.data.x);
+		var from_y = parseInt(e.data.y);
+		
 		if(e.which == 37 || e.which == 65){ // west
-			e.data.move(e.data.x-1, e.data.y);
+			e.data.move(from_x-1, from_y);
 		} else if(e.which == 38 || e.which == 87){ //north
-			e.data.move(e.data.x, e.data.y-1);
+			e.data.move(from_x, from_y-1);
 		} else if(e.which == 39  || e.which == 68){ // east
-			e.data.move(e.data.x+1, e.data.y);
+			e.data.move(from_x+1, from_y);
 		} else if(e.which == 40 || e.which == 83){ // south
-			e.data.move(e.data.x, e.data.y+1);
+			e.data.move(from_x, from_y+1);
 		} else {
 			console.log('key:'+e.which);
 		}
@@ -75,7 +78,7 @@
 		console.dir(to);
 		self.x = to[0];
 		self.y = to[1];
-		this.moving == false;
+		self.moving = false;
 		// if player crossed a chunk boundary
         // unsubscribe from chunk channels that are now too far away
         // subscribe to chunk channels that are now in range
