@@ -98,12 +98,12 @@ io.sockets.on('connection', function(socket) {
                 from_chuid = chuidFor(from_x, from_y);
                 to_chuid = chuidFor(to_x, to_y);
                 
-                function distance(x1, y1, x2, y2){
-					return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+                function taxiDistance(x1, y1, x2, y2){
+					return Math.abs(x1-x2) + Math.abs(y1-y2)
                 }
                 
                 
-                if (distance(from_x, from_y, to_x, to_y) <= 1) {
+                if (taxiDistance(from_x, from_y, to_x, to_y) <= 1) {
                     // can only move one tile at a time
                     //todo: check for other players, objects etc
                     if (to_x !== from_x) {
