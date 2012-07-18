@@ -46,6 +46,8 @@
     this.move = function(x,y){
 		if (!this.moving){
 			this.moving = true;
+			//todo: if server never replies to this movement, no more 
+			// movements will be possible, fix that, maybe timeout?
 			console.log('moving to ('+x+','+y+')');
 			this.socket.emit('move', [x,y]);
 		}
@@ -53,7 +55,6 @@
 	
 	// handle movement keys
 	$('body').on('keydown', this, function(e){
-		// todo: prevent repetitive presses
 		// todo: handle diagonals
 		// todo: don't capture EVERYTHING it's annoying
 		var from_x = parseInt(e.data.x);
@@ -87,6 +88,7 @@
     this.socket.on('invalid move', function(data){
         console.log("can not move there");
         console.dir(data);
+        self.moving = false;
     });
     
     this.socket.on('someone joined', function(data){
