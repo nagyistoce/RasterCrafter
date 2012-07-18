@@ -50,10 +50,10 @@ io.sockets.on('connection', function(socket) {
     socket.on('here is my password', function handlePassword(data) {
         console.log("Recieved a password");
         socket.get('plid', function(err, plid) {
-            db.hget('players:' + plid, 'password', function getPassword(err, password) {
+            db.hget('players:' + plid, 'password', function(err, password) {
                 if (password) {
                     if (data.password == password) {
-                        db.hgetall('players:' + plid, function getPlayerHash(err, coords) {
+                        db.hmget('players:' + plid, 'x', 'y', function(err, coords) {
                             socket.emit('welcome', coords || [0, 0]);
                         });
                     } else {
@@ -80,28 +80,32 @@ io.sockets.on('connection', function(socket) {
     }
 
     socket.on('move', function handleMove(to) {
-        // if player crossed a chunk boundary
-        // unsubscribe from chunk channels that are now too far away
-        // subscribe to chunk channels that are now in range
+
         console.log("Player movement");
         console.dir(to);
 
         socket.get('plid', function(err, plid) {
             db.hmget('players:' + plid, 'x', 'y', function(err, from) {
-
-                from_x = from[0] || 0;
-                from_y = from[1] || 0;
+				
+                from_x = parseInt(from[0]) || 0;
+                from_y = parseInt(from[1]) || 0;
                 // these might be empty if player has never moved
                 //todo: more random initial spawn point
-                to_x = to[0] || from_x;
-                to_y = to[1] || from_y;
-                // not sure why these would be empty but just in case
+                
+                to_x = parseInt(to[0]) || 0;
+                to_y = parseInt(to[1]) || 0;
+                
                 from_chuid = chuidFor(from_x, from_y);
                 to_chuid = chuidFor(to_x, to_y);
-
-                //todo: check for other players, objects etc
-                if (Math.abs(from_x - to_x) <= 1 && Math.abs(from_y - to_y) <= 1) {
+                
+                function distance(x1, y1, x2, y2){
+					return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+                }
+                
+                
+                if (distance(from_x, from_y, to_x, to_y) <= 1) {
                     // can only move one tile at a time
+                    //todo: check for other players, objects etc
                     if (to_x !== from_x) {
                         // moving horizontal
                         if (to_x < from_x) {
@@ -137,6 +141,7 @@ io.sockets.on('connection', function(socket) {
                     socket.emit('you moved', to);
                 } else {
                     socket.emit('invalid move', to);
+                    console.log(from_x, from_y, to_x, to_y);
                 }
             });
         });

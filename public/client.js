@@ -35,15 +35,22 @@
     
     this.socket.on('welcome', function (start) {
         console.log("login successfull");
+        console.dir(start);
         self.x = start[0];
         self.y = start[1];
         // todo: show stuff
     });
     
+    this.moving = false; // whether or not we are in the process of moving
+    
     this.move = function(x,y){
-		console.log('moving to ('+x+','+y+')');
-		this.socket.emit('move', [x,y]);
+		if (!this.moving){
+			this.moving == true;
+			console.log('moving to ('+x+','+y+')');
+			this.socket.emit('move', [x,y]);
+		}
 	};
+	
 	// handle movement keys
 	$('body').on('keydown', this, function(e){
 		// todo: prevent repetitive presses
@@ -64,10 +71,14 @@
 	});
     
     this.socket.on('you moved', function(to){
-			console.log("you moved");
-			console.dir(to);
-			self.x = to[0];
-			self.y = to[1];
+		console.log("you moved");
+		console.dir(to);
+		self.x = to[0];
+		self.y = to[1];
+		this.moving == false;
+		// if player crossed a chunk boundary
+        // unsubscribe from chunk channels that are now too far away
+        // subscribe to chunk channels that are now in range
     });
     
     this.socket.on('invalid move', function(data){
