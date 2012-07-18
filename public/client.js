@@ -9,6 +9,12 @@
     
     // initialize socket
 	this.socket = io.connect();
+	
+	
+	// todo: seems like this could be wrapped up in a "state" object for easier handling
+	this.x = 0;
+	this.y = 0;
+	// todo: the player needs a concept of which direction it's facing
     
     this.socket.on('who are you', function (data) {
         console.log("prompting for player id");
@@ -33,6 +39,29 @@
         self.y = start[1];
         // todo: show stuff
     });
+    
+    this.move = function(x,y){
+		console.log('moving to ('+x+','+y+')');
+		this.socket.emit('move', [x,y]);
+	};
+	// handle movement keys
+	$('body').on('keydown', this, function(e){
+		// todo: prevent repetitive presses
+		// todo: handle diagonals
+		// todo: don't capture EVERYTHING it's annoying
+		if(e.which == 37 || e.which == 65){ // west
+			e.data.move(e.data.x-1, e.data.y);
+		} else if(e.which == 38 || e.which == 87){ //north
+			e.data.move(e.data.x, e.data.y-1);
+		} else if(e.which == 39  || e.which == 68){ // east
+			e.data.move(e.data.x+1, e.data.y);
+		} else if(e.which == 40 || e.which == 83){ // south
+			e.data.move(e.data.x, e.data.y+1);
+		} else {
+			console.log('key:'+e.which);
+		}
+		return false;
+	});
     
     this.socket.on('you moved', function(to){
 			console.log("you moved");
@@ -71,33 +100,5 @@
     
     this.say = function(msg){
 		// todo: send a message over the socket
-	};
-	// todo: seems like this could be wrapped up in a "state" object for easier handling
-	this.x = 0;
-	this.y = 0;
-	// todo: the player needs a concept of which direction it's facing
-	
-	// handle arrow keys
-	$('body').on('keydown', this, function(e){
-		// todo: prevent repetitive presses
-		// todo: handle diagonals
-		// todo: don't capture EVERYTHING it's annoying
-		if(e.which == 37 || e.which == 65){ // west
-			e.data.move(e.data.x-1, e.data.y);
-		} else if(e.which == 38 || e.which == 87){ //north
-			e.data.move(e.data.x, e.data.y-1);
-		} else if(e.which == 39  || e.which == 68){ // east
-			e.data.move(e.data.x+1, e.data.y);
-		} else if(e.which == 40 || e.which == 83){ // south
-			e.data.move(e.data.x, e.data.y+1);
-		} else {
-			console.log('key:'+e.which);
-		}
-		return false;
-	});
-	
-	this.move = function(x,y){
-		console.log('moving to ('+x+','+y+')');
-		this.socket.emit('move', [x,y]);
 	};
 }());
