@@ -2,11 +2,12 @@ var express = require('express'),
     app = express.createServer(express.static(__dirname + '/public')),
     io = require('socket.io').listen(app),
     redis = require("redis"),
-    // currently the Redis connection is the default localhost:port
+    // Redis must be running on the default localhost port
     db = redis.createClient().on("error", function(err) {
         console.error("Redis Error: " + err);
     });
 
+// serve the app's only html file
 app.get('/', function(req, res) {
     res.sendfile('index.html');
 });
@@ -23,14 +24,12 @@ function redisDebug(err, res) {
     }
 };
 
-
-
 io.sockets.on('connection', function(socket) {
     console.log("New connection started");
     socket.emit('who are you');
     // todo: send a unique username
     //socket.broadcast.emit('player joined');
-    // send the player the chunks they are currently standing on
+    
     socket.on('my name is', function handleLogin(data) {
         console.log("They say their name is " + data.plid);
         socket.set('plid', data.plid, function() {
@@ -68,8 +67,6 @@ io.sockets.on('connection', function(socket) {
                 }
             });
         });
-
-
     });
 
     function chuidFor(x, y) {

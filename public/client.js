@@ -10,12 +10,6 @@
     // initialize socket
 	this.socket = io.connect();
 	
-	
-	// todo: seems like this could be wrapped up in a "state" object for easier handling
-	this.x = 0;
-	this.y = 0;
-	// todo: the player needs a concept of which direction it's facing
-    
     this.socket.on('who are you', function (data) {
         console.log("prompting for player id");
         do{
@@ -33,12 +27,17 @@
 		socket.emit('here is my password', {password:password});
     });
     
-    this.socket.on('welcome', function (start) {
+    this.x = 0;
+	this.y = 0;
+	// todo: the player needs a concept of which direction it's facing
+    
+    this.socket.on('welcome', function (pos) {
         console.log("login successfull");
-        console.dir(start);
-        self.x = start[0];
-        self.y = start[1];
-        // todo: show stuff
+        //console.dir(pos);
+        self.x = pos[0];
+        self.y = pos[1];
+        self.tuneIn();
+        // todo: show canvas
     });
     
     this.moving = false; // whether or not we are in the process of moving
@@ -46,9 +45,9 @@
     this.move = function(x,y){
 		if (!this.moving){
 			this.moving = true;
-			//todo: if server never replies to this movement, no more 
+			// todo: if server never replies to this movement, no more 
 			// movements will be possible, fix that, maybe timeout?
-			console.log('moving to ('+x+','+y+')');
+			console.log('moving to '+x+'/'+y+);
 			this.socket.emit('move', [x,y]);
 		}
 	};
@@ -73,6 +72,20 @@
 		}
 		return false;
 	});
+	
+	this.listening = []; // list of chunk ids
+	
+	this.tuneIn = function(){
+	
+		//if()
+	
+		// if player crossed a chunk boundary
+			// leave chunk channels that are now too far away
+			// join chunk channels that are now in range
+			
+		// todo: 
+		// todo: call this function when screen is resized
+	}
     
     this.socket.on('you moved', function(to){
 		console.log("you moved");
@@ -80,9 +93,7 @@
 		self.x = to[0];
 		self.y = to[1];
 		self.moving = false;
-		// if player crossed a chunk boundary
-        // unsubscribe from chunk channels that are now too far away
-        // subscribe to chunk channels that are now in range
+		self.tuneIn();
     });
     
     this.socket.on('invalid move', function(data){
@@ -91,13 +102,30 @@
         self.moving = false;
     });
     
-    this.socket.on('someone joined', function(data){
-      console.log("player joined");
+    this.socket.on('joined chunk', function(data){
+        console.log("you joined chunk x/y");
+        console.dir(data);
+    });
+    
+    // todo: this.socket.on()
+    
+    this.socket.on('someone logged in', function(data){
+      console.log("someone logged in");
       console.dir(data);
     });
     
-    this.socket.on('someone left', function(data){
-      console.log("player left");
+    this.socket.on('someone logged out', function(data){
+      console.log("someone logged outw");
+      console.dir(data);
+    });
+    
+    this.socket.on('someone joined a chunk', function(data){
+      console.log("someone joined a chunk");
+      console.dir(data);
+    });
+    
+    this.socket.on('someone left a chunk', function(data){
+      console.log("someone left a chunk");
       console.dir(data);
     });
     
@@ -105,16 +133,17 @@
         console.log("player moved");
         console.dir(data);
         
-        // todo: add the player to a list of visible players
+        
         // todo: if user moves off chunk remove them from list
     });
     
     this.socket.on('disconnect', function(){
         console.log("You are disconnected");
-        // todo: hide stuff
+        // todo: hide controls
     });
     
     this.say = function(msg){
 		// todo: send a message over the socket
 	};
 }());
+//todo: I'd prefer to use the new operator
