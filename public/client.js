@@ -13,7 +13,7 @@
     this.socket.on('who are you', function (data) {
         console.log("prompting for player id");
         do{
-			plid = prompt("What is your name?", "Joe");
+			var plid = prompt("What is your name?", "Joe");
 		} while(!plid)
 		// todo: validate length
 		socket.emit('my name is', {plid:plid});
@@ -22,7 +22,7 @@
     this.socket.on('what is your password', function (data) {
         console.log("prompting for password");
         do{
-			password = prompt(data);
+			var password = prompt(data);
 		} while(!password)
 		socket.emit('here is my password', {password:password});
     });
@@ -36,7 +36,7 @@
         //console.dir(pos);
         self.x = pos[0];
         self.y = pos[1];
-        self.tuneIn();
+        self.enroll();
         // todo: show canvas
     });
     
@@ -47,7 +47,7 @@
 			this.moving = true;
 			// todo: if server never replies to this movement, no more 
 			// movements will be possible, fix that, maybe timeout?
-			console.log('moving to '+x+'/'+y+);
+			console.log('moving to '+x+'/'+y);
 			this.socket.emit('move', [x,y]);
 		}
 	};
@@ -73,12 +73,20 @@
 		return false;
 	});
 	
-	this.listening = []; // list of chunk ids
+	this.chunks = {}; // dictionary of chunks where chuId is key and canvas is val
 	
-	this.tuneIn = function(){
+	var chunkSize = 64;
 	
-		//if()
-	
+	this.enroll = function(){
+		var chuX = Math.floor( this.x / chunkSize );
+		var chuY = Math.floor( this.y / chunkSize );
+		var chuId = chuX + '/' +  chuY;
+	    console.log(chuId);
+	    
+	    if(!chuId in this.chunks){
+			this.socket.emit('enroll', {chuId:chuId});
+	    }
+	    
 		// if player crossed a chunk boundary
 			// leave chunk channels that are now too far away
 			// join chunk channels that are now in range
@@ -89,11 +97,11 @@
     
     this.socket.on('you moved', function(to){
 		console.log("you moved");
-		console.dir(to);
+		//console.dir(to);
 		self.x = to[0];
 		self.y = to[1];
 		self.moving = false;
-		self.tuneIn();
+		self.enroll();
     });
     
     this.socket.on('invalid move', function(data){

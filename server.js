@@ -68,12 +68,19 @@ io.sockets.on('connection', function(socket) {
             });
         });
     });
-
+    
+    socket.on('enroll', function(data){
+		console.log('enrolling in a chunk');
+		cosole.dir(data);
+    });
+    
+    chunkSize = 64;
+    
     function chuidFor(x, y) {
         // returns the chunk id for the coords
-        chu_x = x / 16;
-        chu_y = y / 16;
-        return 'chunks:' + chu_x + ':' + chu_y;
+        var chuX = Math.floor(x / chunkSize);
+        var chuY = Math.floor(y / chunkSize);
+        return 'chunks:' + chuX + '/' + chuY;
     }
 
     socket.on('move', function handleMove(to) {
