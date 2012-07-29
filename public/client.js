@@ -81,10 +81,10 @@
 		var chuX = Math.floor( this.x / chunkSize );
 		var chuY = Math.floor( this.y / chunkSize );
 		var chuId = chuX + '/' +  chuY;
-	    console.log(chuId);
 	    
-	    if(!chuId in this.chunks){
-			this.socket.emit('enroll', {chuId:chuId});
+	    if(!(chuId in this.chunks)){
+			console.log('enrolling in chunk '+chuId);
+			self.socket.emit('enroll', {chuId:chuId});
 	    }
 	    
 		// if player crossed a chunk boundary
@@ -101,7 +101,7 @@
 		self.x = to[0];
 		self.y = to[1];
 		self.moving = false;
-		self.enroll();
+		self.enroll(); // todo: only call this when crossing a chunk boundary
     });
     
     this.socket.on('invalid move', function(data){
