@@ -12,7 +12,7 @@ app.get('/', function(req, res) {
     res.sendfile('index.html');
 });
 
-PORT = process.env.PORT || 5000;
+PORT = process.env.PORT || 5050;
 app.listen(PORT);
 console.log("Server started on port " + PORT);
 
@@ -76,6 +76,8 @@ io.sockets.on('connection', function(socket) {
 		console.dir(data);
 		var chuId = data.chuId;
 		if(!(chuId in subClients)){
+			console.log('creating a subClient for '+chuId);
+			console.dir(subClients);
 			var chunkClient = redis.createClient();
 			chunkClient.on('message', function(chan, msg){
 				console.log("chunk("+chan+") recieved a message");

@@ -4,9 +4,6 @@
 
 (function(){
 	
-	// closure for callbacks
-	var self = this;
-	
 	var plid = null;
 	var password = null;
     
@@ -55,7 +52,7 @@
 	
 	socket.on('welcome', function (pos) {
         console.log("login successfull");
-        console.dir(pos);
+        //console.dir(pos);
         x = pos[0];
         y = pos[1];
         enrollment();
@@ -65,11 +62,11 @@
 	socket.on('enrolled', function(data){
         console.log("you enrolled in chunk "+data.chuId);
         //console.dir(data);
-        self.chunks[data.chuId] = {};
+        chunks[data.chuId] = {};
         //todo: retrieve chunk pixel data from db and draw to a canvas
     });
     
-    // todo: this.socket.on('unenrolled')
+    // todo: socket.on('unenrolled')
     
     var moving = false; // whether or not we are in the process of moving
     
@@ -107,11 +104,11 @@
 	
     
     socket.on('movement', function(data){
-		console.log(plid);
+		//console.dir(data);
 		if(data.plid == plid){
 			console.log("you moved");
-			x = to[0];
-			y = to[1];
+			x = data.to_x;
+			y = data.to_y;
 			moving = false;
 			enrollment(); // todo: only call this when crossing a chunk boundary
 		} else {
