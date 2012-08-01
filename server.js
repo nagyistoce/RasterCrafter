@@ -31,9 +31,9 @@ io.sockets.on('connection', function(socket) {
     //socket.broadcast.emit('player joined');
     
     socket.on('my name is', function handleLogin(data) {
-        console.log("They say their name is " + data.plid);
-        socket.set('plid', data.plid, function() {
-            db.hget('players:' + data.plid, 'password', function(err, password) {
+        console.log("They say their name is " + data.plId);
+        socket.set('plId', data.plId, function() {
+            db.hget('players:' + data.plId, 'password', function(err, password) {
                 if (password) {
                     message = 'Enter your password';
                 } else {
@@ -43,23 +43,23 @@ io.sockets.on('connection', function(socket) {
             });
         });
 
-        console.log('my_name_is:' + data.plid);
+        console.log('my_name_is:' + data.plId);
     });
 
     socket.on('here is my password', function handlePassword(data) {
         console.log("Recieved a password");
-        socket.get('plid', function(err, plid) {
-            db.hget('players:' + plid, 'password', function(err, password) {
+        socket.get('plId', function(err, plId) {
+            db.hget('players:' + plId, 'password', function(err, password) {
                 if (password) {
                     if (data.password == password) {
-                        db.hmget('players:' + plid, 'x', 'y', function(err, coords) {
+                        db.hmget('players:' + plId, 'x', 'y', function(err, coords) {
                             socket.emit('welcome', coords || [0, 0]);
                         });
                     } else {
                         socket.emit('what is your password', 'Incorrect Password, Try Again');
                     }
                 } else {
-                    db.hset('players:' + plid, 'password', data.password, function setNewPassword(err, res) {
+                    db.hset('players:' + plId, 'password', data.password, function setNewPassword(err, res) {
                         socket.set('authenticated', true, function() {
                             socket.emit('welcome', [0, 0]);
                         });
@@ -69,37 +69,34 @@ io.sockets.on('connection', function(socket) {
         });
     });
     
-    subClients = {};
+    // set up a redis client to listen for messages on chunk channels
+    var chunkListener = redis.createClient().on('pmessage', function(pat, chan, msg){
+		console.log('activity in '+chan);
+		console.dir(msg);
+		var data = JSON.parse(msg);
+		//todo: validate existence of data.message and data.data
+		io.sockets.in(chan).emit(data.message, data.data);
+	}).psubscribe('chunks:*');
     
     socket.on('enroll', function(data){
 		console.log('enrolling in a chunk');
 		console.dir(data);
-		var chuId = data.chuId;
-		if(!(chuId in subClients)){
-			console.log('creating a subClient for '+chuId);
-			console.dir(subClients);
-			var chunkClient = redis.createClient();
-			chunkClient.on('message', function(chan, msg){
-				console.log("chunk("+chan+") recieved a message");
-				console.dir(msg);
-				var data = JSON.parse(msg);
-				//todo: validate existence of data.message and data.data
-				io.sockets.in(chan).emit(data.message, data.data);
-			});
-			chunkClient.subscribe(chuId);
-			subClients[chuId] = chunkClient;
-		}
-		socket.join(chuId);
-		socket.emit('enrolled', {chuId: chuId});
-    });
-    
-    socket.on('unenroll', function(data){
-		console.log('leaving a chunk');
+		
+		data.fresh.forEach(function(chuId){
+			socket.join(chuId);
+		});
+		
+		data.stale.forEach(function(chuId){
+			socket.leave(chuId);
+		});
+		
+		// todo: add pixel data to the fresh chunks
+		socket.emit('enrolled', data);
     });
     
     chunkSize = 64;
     
-    function chuidFor(x, y) {
+    function chuIdFor(x, y) {
         // returns the chunk id for the coords
         var chuX = Math.floor(x / chunkSize);
         var chuY = Math.floor(y / chunkSize);
@@ -111,8 +108,8 @@ io.sockets.on('connection', function(socket) {
         console.log("Player movement");
         console.dir(to);
 
-        socket.get('plid', function(err, plid) {
-            db.hmget('players:' + plid, 'x', 'y', function(err, from) {
+        socket.get('plId', function(err, plId) {
+            db.hmget('players:' + plId, 'x', 'y', function(err, from) {
 				
                 from_x = parseInt(from[0]) || 0;
                 from_y = parseInt(from[1]) || 0;
@@ -130,15 +127,15 @@ io.sockets.on('connection', function(socket) {
                     // can only move one tile at a time
                     // todo: check for other players, objects etc
                     
-                    db.hmset('players:' + plid, 'x', to_x, 'y', to_y);
+                    db.hmset('players:' + plId, 'x', to_x, 'y', to_y);
                     
                     //socket.emit('you moved', to);
-                    var chuId = chuidFor(to_x, to_y);
+                    var chuId = chuIdFor(to_x, to_y);
                     console.log('publishing a message to '+chuId+' channel');
                     db.publish(chuId, JSON.stringify({
 						message: 'movement',
 						data: {
-							plid: plid,
+							plId: plId,
 							from_x: from_x,
 							from_y: from_y,
 							to_x: to_x,
