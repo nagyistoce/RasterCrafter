@@ -3,100 +3,163 @@
 */
 
 (function(){
+
+	var socket = io.connect();
 	
-	// closure for callbacks
-	var self = this;
-    
-    // initialize socket
-	this.socket = io.connect();
-    
-    this.socket.on('who are you', function (data) {
+	// Get player Id
+	
+	var plId = null;
+	
+    socket.on('who are you', function (data) {
         console.log("prompting for player id");
         do{
-			plid = prompt("What is your name?", "Joe");
-		} while(!plid)
+			plId = prompt("What is your name?", "Joe");
+		} while(!plId)
 		// todo: validate length
-		socket.emit('my name is', {plid:plid});
+		socket.emit('my name is', {plId: plId});
     });
     
-    this.socket.on('what is your password', function (data) {
+    // Check password
+    
+    var password = null;
+    
+    socket.on('what is your password', function (data) {
         console.log("prompting for password");
         do{
 			password = prompt(data);
 		} while(!password)
 		socket.emit('here is my password', {password:password});
+		//todo: hash before sending, return a session key or something
     });
     
-    this.socket.on('welcome', function (coords) {
-        console.log("login successfull");
-        self.x = coords.x;
-        self.y = coords.y;
-        // todo: show stuff
-    });
+    // Initialize player position
     
-    this.socket.on('you moved', function(data){
-			console.log("you moved");
-			self.x = data.x;
-			self.y = data.y;
-    });
-    
-    this.socket.on('invalid move', function(data){
-        console.log("can not move there");
-        console.dir(data);
-    });
-    
-    this.socket.on('someone joined', function(data){
-      console.log("player joined");
-      console.dir(data);
-    });
-    
-    this.socket.on('someone left', function(data){
-      console.log("player left");
-      console.dir(data);
-    });
-    
-    this.socket.on('someone moved', function(data){
-        console.log("player moved");
-        console.dir(data);
-        
-        // todo: add the player to a list of visible players
-        // todo: if user moves off chunk remove them from list
-    });
-    
-    this.socket.on('disconnect', function(){
-        console.log("You are disconnected");
-        // todo: hide stuff
-    });
-    
-    this.say = function(msg){
-		// todo: send a message over the socket
-	};
-	// todo: seems like this could be wrapped up in a "state" object for easier handling
-	this.x = 0;
-	this.y = 0;
+    var x = null,
+		y = null;
 	// todo: the player needs a concept of which direction it's facing
+    
+	socket.on('welcome', function (pos) {
+        console.log("login successfull");
+        //console.dir(pos);
+        x = parseInt(pos[0]);
+        y = parseInt(pos[1]);
+        enrollment();
+        // todo: show canvas
+    });
+    
+    
+    // Manage chunk subscriptions and load inital image data
+    
+    var chunks = {}, // dictionary of chunks where chuId is key and canvas is val
+		chunkSize = 64;
 	
-	// handle arrow keys
-	$('body').on('keydown', this, function(e){
-		// todo: prevent repetitive presses
+	function enrollment(){
+		var chuX = Math.floor( x / chunkSize ),
+			chuY = Math.floor( y / chunkSize ),
+			current = [],
+			fresh = [],
+			stale = [],
+			chuId = null;
+		
+		// build an array of chunks we should end up being subscribed to
+		for(var i = -1; i <= 1; i++ ){
+			for(var j = -1; j <= 1; j++ ){
+				chuId = 'chunks:' + (chuX + i) + '/' + (chuY + j);
+				current.push(chuId);
+				
+				// build an array of chunks that need to be subscribed to
+				if(!(chuId in chunks)){
+					fresh.push(chuId);
+				}
+			}
+		}
+		// todo: the starting and ending values for i and j should be dependant on screen width
+	    // todo: call this function when screen is resized
+	    
+	    // build an array of chunks that need to be unsubscribed from
+	    for(k in chunks){
+			if( current.indexOf(k) == -1 ){
+				stale.push(k);
+			}
+	    } 
+	    
+	    
+	    if( fresh.length + stale.length > 0 ){
+			console.log('updating enrollment');
+			socket.emit('enroll', {fresh:fresh, stale:stale});
+		} else {
+			console.log('enrollment already up to date')
+		}
+	};
+	
+	socket.on('enrolled', function(data){
+        console.log('enrollment complete');
+        //console.dir(data);
+        
+        data.fresh.forEach(function(val){
+			chunks[val] = {};
+        });
+        
+        data.stale.forEach(function(val){
+			delete chunks[val];
+        });
+        //todo: retrieve chunk pixel data from db and draw to a canvas
+    });
+    
+    var moving = false; // whether or not we are in the process of moving
+    
+    function move(x,y){
+		if (!moving){
+			moving = true;
+			// todo: if server never replies to this movement, no more 
+			// movements will be possible, fix that, maybe timeout?
+			console.log('moving to '+x+'/'+y);
+			
+			socket.emit('move', [x,y]);
+		}
+	}
+	
+	// handle movement keys
+	$('body').on('keydown', function(e){
 		// todo: handle diagonals
 		// todo: don't capture EVERYTHING it's annoying
+		
+		
 		if(e.which == 37 || e.which == 65){ // west
-			e.data.move(e.data.x-1, e.data.y);
+			move(x-1, y);
 		} else if(e.which == 38 || e.which == 87){ //north
-			e.data.move(e.data.x, e.data.y-1);
+			move(x, y-1);
 		} else if(e.which == 39  || e.which == 68){ // east
-			e.data.move(e.data.x+1, e.data.y);
+			move(x+1, y);
 		} else if(e.which == 40 || e.which == 83){ // south
-			e.data.move(e.data.x, e.data.y+1);
+			move(x, y+1);
 		} else {
 			console.log('key:'+e.which);
 		}
 		return false;
 	});
 	
-	this.move = function(x,y){
-		console.log('moving to ('+x+','+y+')');
-		this.socket.emit('move', {x:x,y:y});
-	};
+    socket.on('movement', function(data){
+		//console.dir(data);
+		if(data.plId == plId){
+			console.log("you moved");
+			x = data.to_x;
+			y = data.to_y;
+			moving = false;
+			enrollment(); // todo: only do this if we're crossing a chunk boundary
+		} else {
+			console.log(data.plId+" moved");
+		}
+    });
+    
+    socket.on('invalid move', function(data){
+        console.log("can not move there");
+        console.dir(data);
+        moving = false;
+    });
+    
+    socket.on('disconnect', function(){
+        console.log("You are disconnected");
+        // todo: hide controls
+    });
 }());
