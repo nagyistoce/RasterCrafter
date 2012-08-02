@@ -18,7 +18,7 @@ function redisDebug(err, res){
 	}else{
 		console.dir(res);
 	}
-};
+}
 
 io.sockets.on('connection', function (socket) {
     console.log("New connection started");
@@ -34,7 +34,8 @@ io.sockets.on('connection', function (socket) {
         console.log("They say their name is "+data.plid);
         socket.set('plid', data.plid, function(){
 			db.hget('players:'+data.plid, 'password', function(err, password){
-				if(password){
+				var message = null;
+                if(password){
 					message = 'Enter your password';
 				} else {
 					message = 'Set your password';
