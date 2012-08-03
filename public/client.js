@@ -14,7 +14,7 @@
         console.log("prompting for player id");
         do{
 			plId = prompt("What is your name?", "Joe");
-		} while(!plId)
+		} while(!plId);
 		// todo: validate length
 		socket.emit('my name is', {plId: plId});
     });
@@ -27,7 +27,7 @@
         console.log("prompting for password");
         do{
 			password = prompt(data);
-		} while(!password)
+		} while(!password);
 		socket.emit('here is my password', {password:password});
 		//todo: hash before sending, return a session key or something
     });
@@ -41,8 +41,8 @@
 	socket.on('welcome', function (pos) {
         console.log("login successfull");
         //console.dir(pos);
-        x = parseInt(pos[0]);
-        y = parseInt(pos[1]);
+        x = parseInt(pos[0], 10);
+        y = parseInt(pos[1], 10);
         enrollment();
         // todo: show canvas
     });
@@ -74,23 +74,21 @@
 			}
 		}
 		// todo: the starting and ending values for i and j should be dependant on screen width
-	    // todo: call this function when screen is resized
-	    
-	    // build an array of chunks that need to be unsubscribed from
-	    for(k in chunks){
-			if( current.indexOf(k) == -1 ){
-				stale.push(k);
-			}
-	    } 
-	    
-	    
-	    if( fresh.length + stale.length > 0 ){
+        // todo: call this function when screen is resize
+        // build an array of chunks that need to be unsubscribed from
+        for(var k in chunks){
+            if( current.indexOf(k) == -1 ){
+                stale.push(k);
+            }
+        } 
+         
+        if( fresh.length + stale.length > 0 ){
 			console.log('updating enrollment');
 			socket.emit('enroll', {fresh:fresh, stale:stale});
 		} else {
-			console.log('enrollment already up to date')
+			console.log('enrollment already up to date');
 		}
-	};
+	}
 	
 	socket.on('enrolled', function(data){
         console.log('enrollment complete');

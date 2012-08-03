@@ -12,7 +12,7 @@ app.get('/', function(req, res) {
     res.sendfile('index.html');
 });
 
-PORT = process.env.PORT || 5050;
+var PORT = process.env.PORT || 5050;
 app.listen(PORT);
 console.log("Server started on port " + PORT);
 
@@ -44,11 +44,11 @@ io.sockets.on('connection', function(socket) {
 			});
 		});
 		
-		console.log('my_name_is:'+my_name_is);
+		console.log('my_name_is:'+data.plId);
     });
     
     // set up a redis client to listen for messages on chunk channels
-    var chunkListener = redis.createClient().on('pmessage', function(pat, chan, msg){
+    var subscriber = redis.createClient().on('pmessage', function(pat, chan, msg){
 		console.log('activity in '+chan);
 		console.dir(msg);
 		var data = JSON.parse(msg);
@@ -72,7 +72,7 @@ io.sockets.on('connection', function(socket) {
 		socket.emit('enrolled', data);
     });
     
-    chunkSize = 64;
+    var chunkSize = 64;
     
     function chuIdFor(x, y) {
         // returns the chunk id for the coords
@@ -89,16 +89,17 @@ io.sockets.on('connection', function(socket) {
         socket.get('plId', function(err, plId) {
             db.hmget('players:' + plId, 'x', 'y', function(err, from) {
 				
-                from_x = parseInt(from[0]) || 0;
-                from_y = parseInt(from[1]) || 0;
+                var from_x = parseInt(from[0], 10) || 0,
+                    from_y = parseInt(from[1], 10) || 0,
+                    to_x = parseInt(to[0], 10) || 0,
+                    to_y = parseInt(to[1], 10) || 0;
                 // these might be empty if player has never moved
                 //todo: more random initial spawn point
                 
-                to_x = parseInt(to[0]) || 0;
-                to_y = parseInt(to[1]) || 0;
+                
                 
                 function taxiDistance(x1, y1, x2, y2){
-					return Math.abs(x1-x2) + Math.abs(y1-y2)
+					return Math.abs(x1-x2) + Math.abs(y1-y2);
                 }
                 
                 if (taxiDistance(from_x, from_y, to_x, to_y) <= 1) {
@@ -133,5 +134,3 @@ io.sockets.on('connection', function(socket) {
         io.sockets.emit('player left');
     });
 });
-
-
